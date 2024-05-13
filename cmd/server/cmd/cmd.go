@@ -30,12 +30,14 @@ const (
 )
 
 func init() {
+	// 初始化命令行参数
 	rootCmd.Flags().StringVarP(&configFile, "config", "c", "", "config file")
 	rootCmd.Flags().IntP("log-level", "l", logLevel, "log level")
 	rootCmd.Flags().String("server-bind", serverBind, "server bind addr")
 }
 
 func initConfig() error {
+	// 设置日志格式
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableColors:   true,
 		TimestampFormat: "2006-01-02 15:04:05",
@@ -45,6 +47,11 @@ func initConfig() error {
 		},
 	})
 
+	viper.SetConfigName("config")
+	// 配置文件和命令行参数都不指定时的默认配置
+	// viper.SetDefault("conn_timeout", 10)
+
+	// 读取配置文件
 	if len(configFile) > 0 {
 		viper.SetConfigFile(configFile)
 		err := viper.ReadInConfig()
@@ -52,6 +59,9 @@ func initConfig() error {
 			return err
 		}
 	}
+
+	// 绑定命令行参数到配置项
+	// 配置项优先级：命令行参数 > 配置文件 > 默认命令行参数
 	_ = viper.BindPFlag("log_level", rootCmd.Flags().Lookup("log-level"))
 	_ = viper.BindPFlag("server_bind", rootCmd.Flags().Lookup("server-bind"))
 
@@ -70,20 +80,20 @@ func initConfig() error {
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		logrus.Fatal(err)
+		logrus.Fatalf("cmd execute error: %v", err)
 	}
 	if cmdReady {
 		err := initConfig()
 		if err != nil {
-			logrus.Fatal(err)
+			logrus.Fatalf("init config error: %v", err)
 		}
 
-		logrus.Debugf("config %+v", config.Conf)
+		logrus.Debugf("config init completed: %+v", config.Conf)
 
 		initConfigPost()
 	}
 }
 
 func initConfigPost() {
-	controller.RunServer(":8080")
+	controller.RunServer(config.Conf.ServerBind)
 }

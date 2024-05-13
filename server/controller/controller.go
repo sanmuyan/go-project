@@ -2,8 +2,9 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/sanmuyan/xpkg/xresponse"
 	"github.com/sirupsen/logrus"
-	"go-project/pkg/response"
+	"go-project/pkg/util"
 	"go-project/server/service"
 )
 
@@ -11,16 +12,12 @@ import (
 
 var svc = service.NewService()
 
-var respf = func() *response.Response {
-	return response.NewResponse()
-}
-
 func Hello(c *gin.Context) {
 	res, err := svc.Hello()
 	if err != nil {
 		logrus.Errorln(err)
-		respf().Fail(response.HttpInternalServerError).SetGin(c)
+		util.Respf().Fail(xresponse.HttpInternalServerError).Response(util.GinRespf(c))
 		return
 	}
-	respf().Ok().WithMsg(res).SetGin(c)
+	util.Respf().Ok().WithMsg(res).Response(util.GinRespf(c))
 }
