@@ -10,7 +10,7 @@ func RunServer(addr string) {
 	router(r)
 	err := r.Run(addr)
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Fatalf("run server error: %v", err)
 	}
 }
 

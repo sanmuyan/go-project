@@ -13,10 +13,11 @@ import (
 var svc = service.NewService()
 
 func Hello(c *gin.Context) {
-	res, err := svc.Hello()
+	msg := c.Query("msg")
+	res, err := svc.Hello(msg)
 	if err != nil {
-		logrus.Errorln(err)
-		util.Respf().Fail(xresponse.HttpInternalServerError).Response(util.GinRespf(c))
+		logrus.Errorf("error: %v", err)
+		util.Respf().Fail(xresponse.HttpInternalServerError).WithError(err).Response(util.GinRespf(c))
 		return
 	}
 	util.Respf().Ok().WithMsg(res).Response(util.GinRespf(c))
