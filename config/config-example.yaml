@@ -1,0 +1,2 @@
+log_level: 4
+server_bind: 0.0.0.0:8080
