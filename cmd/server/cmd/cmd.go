@@ -8,7 +8,9 @@ import (
 	"github.com/spf13/viper"
 	"go-project/pkg/config"
 	"go-project/pkg/configpost"
+	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 )
 
@@ -34,13 +36,11 @@ var configFile string
 const (
 	logLevel   = 4
 	serverBind = "0.0.0.0:8080"
-	// 默认配置文件，为空表示配置文件可选
-	defaultConfigFile = ""
 )
 
 func init() {
 	// 初始化命令行参数
-	rootCmd.Flags().StringVarP(&configFile, "config", "c", defaultConfigFile, "config file")
+	rootCmd.Flags().StringVarP(&configFile, "config", "c", "", "config file")
 	rootCmd.Flags().IntP("log-level", "l", logLevel, "log level")
 	rootCmd.Flags().String("server-bind", serverBind, "server bind addr")
 }
@@ -59,6 +59,16 @@ func initConfig(cmd *cobra.Command, args []string) error {
 	viper.SetConfigName("config")
 	// 配置文件和命令行参数都不指定时的默认配置
 	// viper.SetDefault("conn_timeout", 10)
+
+	// 设置默认配置文件，如果配置文件是可选的则可以不设置
+	if len(configFile) == 0 {
+		dir, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		configFile = dir + "/config.yaml"
+		configFile = filepath.Clean(configFile)
+	}
 
 	// 读取配置文件
 	if len(configFile) > 0 {
