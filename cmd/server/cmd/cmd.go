@@ -32,8 +32,9 @@ var rootCmd = &cobra.Command{
 var configFile string
 
 const (
-	logLevel          = 4
-	serverBind        = "0.0.0.0:8080"
+	logLevel   = 4
+	serverBind = "0.0.0.0:8080"
+	// 默认配置文件，为空表示配置文件可选
 	defaultConfigFile = ""
 )
 
