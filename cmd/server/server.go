@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"go-project/cmd/server/cmd"
 	"os"
 	"os/signal"
@@ -15,7 +14,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		<-sigs
-		logrus.Warn("shutting down server...")
 		cancel()
 	}()
 	cmd.Execute(ctx)

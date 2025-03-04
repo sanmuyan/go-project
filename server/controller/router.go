@@ -27,7 +27,7 @@ func RunServer(ctx context.Context, addr string) {
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("server shutdown error: %s", err)
 	}
-	logrus.Warn("server has been shutdown")
+	logrus.Infoln("server has been shutdown")
 }
 
 func router(r *gin.Engine) {
