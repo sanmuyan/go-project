@@ -12,13 +12,19 @@ import (
 	"runtime"
 )
 
-var cmdReady bool
+var rootCtx context.Context
 
 var rootCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Go Project Server",
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		err := initConfig(cmd, args)
+		if err != nil {
+			logrus.Fatalf("init config error: %v", err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		cmdReady = true
+		configpost.PostInit(rootCtx)
 	},
 	Example: "go-project -c config.yaml",
 }
@@ -26,18 +32,19 @@ var rootCmd = &cobra.Command{
 var configFile string
 
 const (
-	logLevel   = 4
-	serverBind = "0.0.0.0:8080"
+	logLevel          = 4
+	serverBind        = "0.0.0.0:8080"
+	defaultConfigFile = ""
 )
 
 func init() {
 	// 初始化命令行参数
-	rootCmd.Flags().StringVarP(&configFile, "config", "c", "", "config file")
+	rootCmd.Flags().StringVarP(&configFile, "config", "c", defaultConfigFile, "config file")
 	rootCmd.Flags().IntP("log-level", "l", logLevel, "log level")
 	rootCmd.Flags().String("server-bind", serverBind, "server bind addr")
 }
 
-func initConfig() error {
+func initConfig(cmd *cobra.Command, args []string) error {
 	// 设置日志格式
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableColors:   true,
@@ -63,8 +70,8 @@ func initConfig() error {
 
 	// 绑定命令行参数到配置项
 	// 配置项优先级：命令行参数 > 配置文件 > 默认命令行参数
-	_ = viper.BindPFlag("log_level", rootCmd.Flags().Lookup("log-level"))
-	_ = viper.BindPFlag("server_bind", rootCmd.Flags().Lookup("server-bind"))
+	_ = viper.BindPFlag("log_level", cmd.Flags().Lookup("log-level"))
+	_ = viper.BindPFlag("server_bind", cmd.Flags().Lookup("server-bind"))
 
 	err := viper.Unmarshal(&config.Conf)
 	if err != nil {
@@ -76,25 +83,13 @@ func initConfig() error {
 		gin.SetMode(gin.DebugMode)
 		logrus.SetReportCaller(true)
 	}
+	logrus.Debugf("config init completed: %+v", config.Conf)
 	return nil
 }
 
 func Execute(ctx context.Context) {
+	rootCtx = ctx
 	if err := rootCmd.Execute(); err != nil {
 		logrus.Fatalf("cmd execute error: %v", err)
 	}
-	if cmdReady {
-		err := initConfig()
-		if err != nil {
-			logrus.Fatalf("init config error: %v", err)
-		}
-
-		logrus.Debugf("config init completed: %+v", config.Conf)
-
-		initConfigPost(ctx)
-	}
-}
-
-func initConfigPost(ctx context.Context) {
-	configpost.PostInit(ctx)
 }

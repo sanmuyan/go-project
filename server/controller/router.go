@@ -22,6 +22,7 @@ func RunServer(ctx context.Context, addr string) {
 			}
 		}
 	}()
+	logrus.Infof("server listening on %s", addr)
 	<-ctx.Done()
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("server shutdown error: %s", err)
